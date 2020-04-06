@@ -1,0 +1,20 @@
+*.sh
+*.out
+*.txt
+*.csv
+*.jpg
+*.png
+*.PNG
+*.pdf
+*.zip
+*.docx
+*.pptx
+*.DS_Store
+*.pyc
+# *.ipynb
+*.ipynb_checkpoints/
+__pycache__/
+
+home/
+south-building/
+stairs/
