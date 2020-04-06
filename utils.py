@@ -36,6 +36,7 @@ def detect_outliers_1d(data, threshold):
     """ Detect outliers from a vector of data
     :param data: 1d vector
     :param threshold: determine if a point is outlier
+    :return: ids of data points
     """
     mean = np.mean(data)
     std = np.std(data)
@@ -50,6 +51,7 @@ def detect_outliers_3d(data, threshold):
     """ Detect outliers from 3d points cloud
     :param data: 3d numpy array, (n,3)
     :param threshold: determine if a point is outlier
+    :return: ids of data points
     """
     idx = detect_outliers_1d(data[:, 0], threshold)
     idy = detect_outliers_1d(data[:, 1], threshold)
@@ -75,6 +77,8 @@ def remove_outliers(data, threshold):
 
 
 def get_3D_box(dimx, dimy, dimz):
+    """ Generate coordinates of 8 corners of the box
+    """
     corners = np.array([[dimx/2, dimy/2, 0],
                         [-dimx/2, dimy/2, 0],
                         [-dimx/2, -dimy/2, 0],
