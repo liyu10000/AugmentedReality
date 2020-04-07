@@ -31,6 +31,12 @@ def parse_points3D(txt):
             xyz.append([x, y, z])
     return np.array(xyz)
 
+def parse_cameras(txt):
+    pass
+
+def parse_images(txt):
+    pass
+
 
 def detect_outliers_1d(data, threshold):
     """ Detect outliers from a vector of data
@@ -138,9 +144,9 @@ def plot3D(inplane_points, outplane_points, plot_plane=False, model=None, plot_b
             ax.add_collection3d(Poly3DCollection([vertices]))
         # ax.scatter3D(corners[:, 0], corners[:, 1], corners[:, 2], color='blue')
         
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
 
     plt.show()
 
