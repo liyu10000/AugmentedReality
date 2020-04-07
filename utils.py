@@ -18,7 +18,7 @@ def get_frame(video_name, frame_dir):
         count += 1
 
 
-def parse_txt(txt):
+def parse_points3D(txt):
     xyz = []
     with open(txt, 'r') as f:
         for line in f.readlines():
