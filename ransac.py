@@ -64,9 +64,9 @@ def ransac(data, sample_size, num_iters, threshold_inlier, num_points):
 
 
 if __name__ == '__main__':
-    from utils import parse_txt
+    from utils import parse_points3D
 
-    data = parse_txt('./home/points3D')
+    data = parse_points3D('./home/points3D')
 
     sample_size = 3
     num_iters = 20
