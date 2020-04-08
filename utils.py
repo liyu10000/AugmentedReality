@@ -17,8 +17,22 @@ def get_frame(video_name, frame_dir):
         print('Read a new frame: ', success)
         count += 1
 
+def gen_video(frame_dir, video_name):
+    names = [name for name in os.listdir(frame_dir) if name.endswith('png')]
+    names = sorted(names, key=lambda name:int(name[5:].split('.')[0]))
+    frame = cv2.imread(os.path.join(frame_dir, names[0]))
+    height, width, _ = frame.shape
+    video = cv2.VideoWriter(video_name, fourcc=cv2.VideoWriter_fourcc(*'mp4v'), fps=30, frameSize=(width, height))  
+    for name in names:
+        frame = cv2.imread(os.path.join(frame_dir, name))
+        video.write(frame)  
+    video.release()
+
 
 def parse_points3D(txt):
+    """ Parse points3D.txt from sparse reconstruction.
+        Return a numpy array of xyz coordinates, (n,3).
+    """
     xyz = []
     with open(txt, 'r') as f:
         for line in f.readlines():
@@ -30,6 +44,53 @@ def parse_points3D(txt):
             z = float(tokens[3])
             xyz.append([x, y, z])
     return np.array(xyz)
+
+def parse_cameras(txt):
+    """ Parse cameras.txt from sparse reconstruction.
+        Assume a single camera model:
+            SIMPLE_RADIAL params: f, cx, cy, k.
+        Return a python dict containing camara params.
+    """
+    cameras = {}
+    with open(txt, 'r') as f:
+        for line in f.readlines():
+            if line.startswith('#'):
+                continue
+            tokens = line.strip().split()
+            CAMERA_ID = int(tokens[0])
+            cameras[CAMERA_ID] = {}
+            cameras[CAMERA_ID]['MODEL'] = tokens[1]
+            cameras[CAMERA_ID]['WIDTH'] = int(tokens[2])
+            cameras[CAMERA_ID]['HEIGHT'] = int(tokens[3])
+            cameras[CAMERA_ID]['PARAMS'] = [float(tokens[i]) for i in range(4, len(tokens))]
+    return cameras
+
+def parse_images(txt):
+    """ Parse images.txt from sparse reconstruction.
+        Return a python dict containing camera pose for each image.
+    """
+    keys = ['QW', 'QX', 'QY', 'QZ', 'TX', 'TY', 'TZ', 'CAMERA_ID', 'NAME']
+    images = {}
+    readline = False
+    with open(txt, 'r') as f:
+        for line in f.readlines():
+            if line.startswith('#') or not readline:
+                readline = True
+            else:
+                readline = False
+                tokens = line.strip().split()
+                IMAGE_ID = int(tokens[0])
+                images[IMAGE_ID] = {key:None for key in keys}
+                images[IMAGE_ID]['QW'] = float(tokens[1])
+                images[IMAGE_ID]['QX'] = float(tokens[2])
+                images[IMAGE_ID]['QY'] = float(tokens[3])
+                images[IMAGE_ID]['QZ'] = float(tokens[4])
+                images[IMAGE_ID]['TX'] = float(tokens[5])
+                images[IMAGE_ID]['TY'] = float(tokens[6])
+                images[IMAGE_ID]['TZ'] = float(tokens[7])
+                images[IMAGE_ID]['CAMERA_ID'] = int(tokens[8])
+                images[IMAGE_ID]['NAME'] = tokens[9]
+    return images
 
 
 def detect_outliers_1d(data, threshold):
@@ -138,16 +199,31 @@ def plot3D(inplane_points, outplane_points, plot_plane=False, model=None, plot_b
             ax.add_collection3d(Poly3DCollection([vertices]))
         # ax.scatter3D(corners[:, 0], corners[:, 1], corners[:, 2], color='blue')
         
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
 
     plt.show()
 
 
 
 if __name__ == '__main__':
-    video_name = './home/home.MOV'
-    frame_dir = './home/frames'
-    get_frame(video_name, frame_dir)
+    # video_name = './home/home.MOV'
+    # frame_dir = './home/frames'
+    # get_frame(video_name, frame_dir)
 
+    points3D_txt = './home/points3D.txt'
+    points3D = parse_points3D(points3D_txt)
+    print(points3D.shape)
+    print(np.min(points3D, axis=0))
+    print(np.max(points3D, axis=0))
+    print(np.mean(points3D, axis=0))
+
+    # cameras_txt = './home/cameras.txt'
+    # cameras = parse_cameras(cameras_txt)
+    # print(cameras)
+
+    # images_txt = './home/images.txt'
+    # images = parse_images(images_txt)
+    # print(images)
+    # print({k:len(v) for k,v in images.items()})
