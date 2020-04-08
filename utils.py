@@ -46,19 +46,20 @@ def parse_cameras(txt):
             if line.startswith('#'):
                 continue
             tokens = line.strip().split()
-            cameras['CAMERA_ID'] = int(tokens[0])
-            cameras['MODEL'] = tokens[1]
-            cameras['WIDTH'] = int(tokens[2])
-            cameras['HEIGHT'] = int(tokens[3])
-            cameras['PARAMS'] = [float(tokens[i]) for i in range(4, len(tokens))]
+            CAMERA_ID = int(tokens[0])
+            cameras[CAMERA_ID] = {}
+            cameras[CAMERA_ID]['MODEL'] = tokens[1]
+            cameras[CAMERA_ID]['WIDTH'] = int(tokens[2])
+            cameras[CAMERA_ID]['HEIGHT'] = int(tokens[3])
+            cameras[CAMERA_ID]['PARAMS'] = [float(tokens[i]) for i in range(4, len(tokens))]
     return cameras
 
 def parse_images(txt):
     """ Parse images.txt from sparse reconstruction.
         Return a python dict containing camera pose for each image.
     """
-    keys = ['IMAGE_ID', 'QW', 'QX', 'QY', 'QZ', 'TX', 'TY', 'TZ', 'CAMERA_ID', 'NAME']
-    images = {key:[] for key in keys}
+    keys = ['QW', 'QX', 'QY', 'QZ', 'TX', 'TY', 'TZ', 'CAMERA_ID', 'NAME']
+    images = {}
     readline = False
     with open(txt, 'r') as f:
         for line in f.readlines():
@@ -67,16 +68,17 @@ def parse_images(txt):
             else:
                 readline = False
                 tokens = line.strip().split()
-                images['IMAGE_ID'].append(int(tokens[0]))
-                images['QW'].append(float(tokens[1]))
-                images['QX'].append(float(tokens[2]))
-                images['QY'].append(float(tokens[3]))
-                images['QZ'].append(float(tokens[4]))
-                images['TX'].append(float(tokens[5]))
-                images['TY'].append(float(tokens[6]))
-                images['TZ'].append(float(tokens[7]))
-                images['CAMERA_ID'].append(int(tokens[8]))
-                images['NAME'].append(tokens[9])
+                IMAGE_ID = int(tokens[0])
+                images[IMAGE_ID] = {key:None for key in keys}
+                images[IMAGE_ID]['QW'] = float(tokens[1])
+                images[IMAGE_ID]['QX'] = float(tokens[2])
+                images[IMAGE_ID]['QY'] = float(tokens[3])
+                images[IMAGE_ID]['QZ'] = float(tokens[4])
+                images[IMAGE_ID]['TX'] = float(tokens[5])
+                images[IMAGE_ID]['TY'] = float(tokens[6])
+                images[IMAGE_ID]['TZ'] = float(tokens[7])
+                images[IMAGE_ID]['CAMERA_ID'] = int(tokens[8])
+                images[IMAGE_ID]['NAME'] = tokens[9]
     return images
 
 

@@ -49,10 +49,22 @@ def world2camera(UVW, R, T):
     XYZ = XYZ1[:, :3]
     return XYZ
 
-def camera2film(XYZ, f):
+def distortion(k, x, y):
+    x2 = x ** 2
+    y2 = y ** 2
+    r2 = x2 + y2
+    radial = k * r2
+    dx = np.multiply(x, radial)
+    dy = np.multiply(y, radial)
+    return dx, dy
+
+def camera2film(XYZ, f, k):
     X, Y, Z = XYZ[:, 0], XYZ[:, 1], XYZ[:, 2]
-    x = f * X / Z
-    y = f * Y / Z
+    x = X / Z
+    y = Y / Z
+    dx, dy = distortion(k, x, y)
+    x = f * x + dx
+    y = f * y + dy
     x = x.reshape(-1, 1)
     y = y.reshape(-1, 1)
     return np.hstack([x, y])
@@ -65,73 +77,20 @@ def film2pixel(xy, cx, cy):
     v = v.reshape(-1, 1)
     return np.hstack([u, v])
 
-def forward_projection(data, cameras, images):
-    f, cx, cy, k = cameras['PARAMS']
-    IMAGE_ID = images['IMAGE_ID']
-    NAME = images['NAME']
-    QW = images['QW']
-    QX = images['QX']
-    QY = images['QY']
-    QZ = images['QZ']
-    TX = images['TX']
-    TY = images['TY']
-    TZ = images['TZ']
-    for name, qw, qx, qy, qz, tx, ty, tz in zip(NAME, QW, QX, QY, QZ, TX, TY, TZ):
-        qvec = [qw, qx, qy, qz]
-        R = qvec2rotmat(qvec)
-        T = np.array([tx, ty, tz])
-
-        XYZ = world2camera(data, R, T)
-        xy = camera2film(XYZ, f)
-        uv = film2pixel(xy, cx, cy)
-        print(np.min(uv, axis=0))
-        print(np.mean(uv, axis=0))
-        print(np.max(uv, axis=0))
-        
-        break
-
-def backward_projection():
-    pass
-
-
-
-# def Distortion(k, u, v):
-#     u2 = u * u
-#     v2 = v * v
-#     r2 = u2 + v2
-#     radial = k * r2
-#     du = u * radial
-#     dv = v * radial
-#     return du, dv
-
-# def WorldToImage(params, u, v):
-#     f, c1, c2, k = params
-
-#     # Distortion
-#     du, dv = Distortion(k, u, v)
-#     x = u + du
-#     y = v + dv
-
-#     # Transform to image coordinates
-#     x = f * x + c1
-#     y = f * y + c2
-#     return x, y
-
-# def ImageToWorld(params, x, y, u, v):
-#   f, c1, c2, k = params
-
-#   # Lift points to normalized plane
-#   u = (x - c1) / f
-#   v = (y - c2) / f
-
-#   IterativeUndistortion(k, u, v)
-
-
-
-if __name__ == '__main__':
-    params = [1855.42, 960, 540, 0.00782192]
-    X, Y, Z = -1.34451987, 1.0912873, 8.02443223
-    u = X / Z
-    v = Y / Z
-    x, y = WorldToImage(params, u, v)
-    print(x, y)
+def forward_projection(data, camera_params, image_pose):
+    f, cx, cy, k = camera_params['PARAMS']
+    QW = image_pose['QW']
+    QX = image_pose['QX']
+    QY = image_pose['QY']
+    QZ = image_pose['QZ']
+    TX = image_pose['TX']
+    TY = image_pose['TY']
+    TZ = image_pose['TZ']
+    qvec = [QW, QX, QY, QZ]
+    R = qvec2rotmat(qvec)
+    T = np.array([TX, TY, TZ])
+    XYZ = world2camera(data, R, T)
+    xy = camera2film(XYZ, f, k)
+    uv = film2pixel(xy, cx, cy)
+    uv = uv.astype(int)
+    return uv
