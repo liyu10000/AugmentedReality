@@ -2,7 +2,6 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from pprint import pprint
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -200,11 +199,18 @@ if __name__ == '__main__':
     # frame_dir = './home/frames'
     # get_frame(video_name, frame_dir)
 
+    points3D_txt = './home/points3D.txt'
+    points3D = parse_points3D(points3D_txt)
+    print(points3D.shape)
+    print(np.min(points3D, axis=0))
+    print(np.max(points3D, axis=0))
+    print(np.mean(points3D, axis=0))
+
     # cameras_txt = './home/cameras.txt'
     # cameras = parse_cameras(cameras_txt)
     # print(cameras)
 
-    images_txt = './home/images.txt'
-    images = parse_images(images_txt)
-    print(images)
-    pprint({k:len(v) for k,v in images.items()})
+    # images_txt = './home/images.txt'
+    # images = parse_images(images_txt)
+    # print(images)
+    # print({k:len(v) for k,v in images.items()})
