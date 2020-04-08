@@ -17,6 +17,17 @@ def get_frame(video_name, frame_dir):
         print('Read a new frame: ', success)
         count += 1
 
+def gen_video(frame_dir, video_name):
+    names = [name for name in os.listdir(frame_dir) if name.endswith('png')]
+    names = sorted(names, key=lambda name:int(name[5:].split('.')[0]))
+    frame = cv2.imread(os.path.join(frame_dir, names[0]))
+    height, width, _ = frame.shape
+    video = cv2.VideoWriter(video_name, fourcc=cv2.VideoWriter_fourcc(*'mp4v'), fps=30, frameSize=(width, height))  
+    for name in names:
+        frame = cv2.imread(os.path.join(frame_dir, name))
+        video.write(frame)  
+    video.release()
+
 
 def parse_points3D(txt):
     """ Parse points3D.txt from sparse reconstruction.

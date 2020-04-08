@@ -63,8 +63,8 @@ def camera2film(XYZ, f, k):
     x = X / Z
     y = Y / Z
     dx, dy = distortion(k, x, y)
-    x = f * x + dx
-    y = f * y + dy
+    x = f * (x + dx)
+    y = f * (y + dy)
     x = x.reshape(-1, 1)
     y = y.reshape(-1, 1)
     return np.hstack([x, y])
@@ -77,7 +77,13 @@ def film2pixel(xy, cx, cy):
     v = v.reshape(-1, 1)
     return np.hstack([u, v])
 
-def forward_projection(data, camera_params, image_pose):
+def calc_depth(point3D, R, T):
+    point3D_h = np.array([*point3D, 1])
+    RT = np.hstack([R, T])
+    proj_z = np.dot(RT[2, :], point3D_h)
+    return proj_z * np.linalg.norm(RT[:, 2])
+
+def forward_projection(data, camera_params, image_pose, calc_depth=None):
     f, cx, cy, k = camera_params['PARAMS']
     QW = image_pose['QW']
     QX = image_pose['QX']
@@ -93,4 +99,19 @@ def forward_projection(data, camera_params, image_pose):
     xy = camera2film(XYZ, f, k)
     uv = film2pixel(xy, cx, cy)
     uv = uv.astype(int)
-    return uv
+    depths = []
+    if calc_depth is not None:
+        T = T.reshape(-1, 1)
+        for d in data:
+            depth = calc_depth(d, R, T)
+            depths.append(depth)
+    depths = np.array(depths)
+    return uv, depths
+
+def order_by_depth(combinations, depths):
+    face_depths = []
+    for comb in combinations:
+        ds = depths[comb]
+        face_depths.append(np.min(ds))
+    new_combinations = [comb for _,comb in sorted(zip(face_depths, combinations), key=lambda pair: pair[0], reverse=True)]
+    return np.array(new_combinations)
