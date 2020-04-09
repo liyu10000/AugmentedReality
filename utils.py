@@ -137,20 +137,6 @@ def remove_outliers(data, threshold):
     return data_inliers
 
 
-def get_3D_box(dimx, dimy, dimz):
-    """ Generate coordinates of 8 corners of the box
-    """
-    corners = np.array([[dimx/2, dimy/2, 0],
-                        [-dimx/2, dimy/2, 0],
-                        [-dimx/2, -dimy/2, 0],
-                        [dimx/2, -dimy/2, 0],
-                        [dimx/2, dimy/2, dimz],
-                        [-dimx/2, dimy/2, dimz],
-                        [-dimx/2, -dimy/2, dimz],
-                        [dimx/2, -dimy/2, dimz]])
-    return corners
-
-
 def add_plane(ax, model, x, y):
     a, b, c, d = model
     xmin, xmax = np.min(x), np.max(x)
@@ -167,14 +153,7 @@ def add_plane(ax, model, x, y):
     Z = -(a*X + b*Y + d) / c
     ax.plot_surface(X, Y, Z)
 
-def add_box(ax, corners):
-    combinations = [[0,1,2,3],  # bottom
-                    [4,5,6,7],  # top
-                    [0,1,5,4],  # right
-                    [3,2,6,7],  # left
-                    [0,4,7,3],  # front
-                    [1,5,6,2]]  # back
-    combinations = np.array(combinations)
+def add_object(ax, corners, combinations):
     for comb in combinations:
         vertices = corners[comb, :]
         ax.add_collection3d(Poly3DCollection([vertices]))
@@ -182,7 +161,7 @@ def add_box(ax, corners):
 
 def plot3D(inplane_points, outplane_points, 
            plot_plane=False, model=None, 
-           plot_box=False, corners=None):
+           plot_box=False, plot_table=False, corners=None, combinations=None):
     fig = plt.figure(1, figsize=(8, 8))
     ax = fig.gca(projection='3d')
 
@@ -205,7 +184,11 @@ def plot3D(inplane_points, outplane_points,
         
     # plot the box
     if plot_box:
-        add_box(ax, corners)
+        add_object(ax, corners, combinations)
+        
+    # plot the table
+    if plot_table:
+        add_object(ax, corners, combinations)
         
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
