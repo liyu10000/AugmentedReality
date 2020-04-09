@@ -151,7 +151,38 @@ def get_3D_box(dimx, dimy, dimz):
     return corners
 
 
-def plot3D(inplane_points, outplane_points, plot_plane=False, model=None, plot_box=False, corners=None):
+def add_plane(ax, model, x, y):
+    a, b, c, d = model
+    xmin, xmax = np.min(x), np.max(x)
+    xlen = xmax - xmin
+    xmin -= xlen * 0.2
+    xmax += xlen * 0.2
+    ymin, ymax = np.min(y), np.max(y)
+    ylen = ymax - ymin
+    ymin -= ylen * 0.2
+    ymax += ylen * 0.2
+    X = np.linspace(xmin, xmax, 10)
+    Y = np.linspace(ymin, ymax, 10)
+    X, Y = np.meshgrid(X, Y)
+    Z = -(a*X + b*Y + d) / c
+    ax.plot_surface(X, Y, Z)
+
+def add_box(ax, corners):
+    combinations = [[0,1,2,3],  # bottom
+                    [4,5,6,7],  # top
+                    [0,1,5,4],  # right
+                    [3,2,6,7],  # left
+                    [0,4,7,3],  # front
+                    [1,5,6,2]]  # back
+    combinations = np.array(combinations)
+    for comb in combinations:
+        vertices = corners[comb, :]
+        ax.add_collection3d(Poly3DCollection([vertices]))
+    # ax.scatter3D(corners[:, 0], corners[:, 1], corners[:, 2], color='blue')
+
+def plot3D(inplane_points, outplane_points, 
+           plot_plane=False, model=None, 
+           plot_box=False, corners=None):
     fig = plt.figure(1, figsize=(8, 8))
     ax = fig.gca(projection='3d')
 
@@ -170,34 +201,11 @@ def plot3D(inplane_points, outplane_points, plot_plane=False, model=None, plot_b
 
     # plot the surface
     if plot_plane:
-        a, b, c, d = model
-        xmin, xmax = np.min(xi), np.max(xi)
-        xlen = xmax - xmin
-        xmin -= xlen * 0.2
-        xmax += xlen * 0.2
-        ymin, ymax = np.min(yi), np.max(yi)
-        ylen = ymax - ymin
-        ymin -= ylen * 0.2
-        ymax += ylen * 0.2
-        x = np.linspace(xmin, xmax, 100)
-        y = np.linspace(ymin, ymax, 100)
-        X, Y = np.meshgrid(x, y)
-        Z = -(a*X + b*Y + d) / c
-        surf = ax.plot_surface(X, Y, Z)
+        add_plane(ax, model, xi, yi)
         
     # plot the box
     if plot_box:
-        combinations = [[0,1,2,3],  # bottom
-                        [4,5,6,7],  # top
-                        [0,1,5,4],  # right
-                        [3,2,6,7],  # left
-                        [0,4,7,3],  # front
-                        [1,5,6,2]]  # back
-        combinations = np.array(combinations)
-        for comb in combinations:
-            vertices = corners[comb, :]
-            ax.add_collection3d(Poly3DCollection([vertices]))
-        # ax.scatter3D(corners[:, 0], corners[:, 1], corners[:, 2], color='blue')
+        add_box(ax, corners)
         
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
