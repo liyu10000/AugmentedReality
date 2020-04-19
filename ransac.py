@@ -9,7 +9,7 @@ def fit_plane(data):
     Z = data[:, 2]
     (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
     x = np.array([a, b, -1, c])
-    norm = np.linalg.norm(x)
+    norm = np.linalg.norm([a, b, -1])
     x /= norm
     return x
 
